@@ -9,7 +9,8 @@ A Next.js application for tracking and analyzing Reddit threads.
 
 # Preview
 - Link "https://threadracer.netlify.app"
-  
+  ![1png](asset/1.png)
+  ![2png](asset/2.png)
 
 ## Installation
 1. Clone the repository:
