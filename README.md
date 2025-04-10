@@ -7,8 +7,9 @@ A Next.js application for tracking and analyzing Reddit threads.
 - Subreddit lane management
 - Interactive visualization
 
-# Priview
+# Preview
 - Link "https://threadracer.netlify.app"
+  
 
 ## Installation
 1. Clone the repository:
