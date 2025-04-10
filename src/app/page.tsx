@@ -6,33 +6,40 @@ import { AddLaneDialog } from './components/AddLaneDialog';
 import type { SubredditLane as SubredditLaneType } from './types';
 
 function App() {
-  const [lanes, setLanes] = useState<SubredditLaneType[]>(() => {
+  const [lanes, setLanes] = useState<SubredditLaneType[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Initialize from localStorage
+  useEffect(() => {
     const saved = localStorage.getItem('subredditLanes');
-    return saved ? JSON.parse(saved) : [
+    const initialLanes = saved ? JSON.parse(saved) : [
       { name: 'programming', posts: [], isLoading: true },
       { name: 'javascript', posts: [], isLoading: true }
     ];
-  });
-  const [showAddDialog, setShowAddDialog] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('subredditLanes', JSON.stringify(lanes));
-  }, [lanes]);
-
-  useEffect(() => {
-    lanes.forEach(lane => {
+    setLanes(initialLanes);
+    setIsInitializing(false);
+    
+    initialLanes.forEach((lane: SubredditLaneType) => {
       if (lane.isLoading) {
         fetchSubredditPosts(lane.name);
       }
     });
   }, []);
 
-  const fetchSubredditPosts = async (subreddit: string) => {
-    setLanes(prev => prev.map(lane =>
-      lane.name === subreddit ? { ...lane, isLoading: true, error: undefined } : lane
-    ));
+  // Persist to localStorage
+  useEffect(() => {
+    if (!isInitializing) {
+      localStorage.setItem('subredditLanes', JSON.stringify(lanes));
+    }
+  }, [lanes, isInitializing]);
 
+  const fetchSubredditPosts = async (subreddit: string) => {
     try {
+      setLanes(prev => prev.map(lane =>
+        lane.name === subreddit ? { ...lane, isLoading: true, error: undefined } : lane
+      ));
+
       const response = await fetch(`https://www.reddit.com/r/${subreddit}.json`);
       if (!response.ok) {
         throw new Error('Subreddit not found or private');
@@ -56,7 +63,11 @@ function App() {
       ));
     } catch (error) {
       setLanes(prev => prev.map(lane =>
-        lane.name === subreddit ? { ...lane, error: 'Failed to load subreddit', isLoading: false } : lane
+        lane.name === subreddit ? { 
+          ...lane, 
+          error: error instanceof Error ? error.message : 'Failed to load subreddit', 
+          isLoading: false 
+        } : lane
       ));
     }
   };
